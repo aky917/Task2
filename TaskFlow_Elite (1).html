@@ -261,7 +261,9 @@ tr:hover .row-actions { opacity: 1; }
 .filter-reset:hover { color: var(--red); }
 
 @media (max-width: 900px) {
-  .shell { grid-template-columns: 1fr; }
+  .shell { grid-template-columns: 1fr; grid-template-rows: 52px 1fr; }
+  .shell > .sidebar { grid-column: 1; grid-row: 2; }
+  .shell > .main  { grid-column: 1; grid-row: 2; }
   .topbar { padding: 0 12px; gap: 8px; }
   .hamburger { display: flex; }
   .sidebar { position: fixed; left: -290px; top: 52px; height: calc(100vh - 52px); z-index: 150; transition: left .25s; width: 280px; box-shadow: 4px 0 20px rgba(0,0,0,.5); }
@@ -486,6 +488,17 @@ tr:hover .row-actions { opacity: 1; }
 </div>
 
 <div id="toast"></div>
+
+<!-- SIM DETAIL MODAL -->
+<div id="sim-detail-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;width:min(560px,95vw);max-height:80vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);">
+      <span id="sim-detail-title" style="font-size:13px;font-weight:600;color:var(--text)"></span>
+      <button onclick="closeSimDetail()" style="background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;">&#10005;</button>
+    </div>
+    <div id="sim-detail-body" style="overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+</div>
 
 <script>
 // ============================================================
@@ -1476,9 +1489,10 @@ function renderSim() {
     });
 
     if (overTasks.length > 4) {
-      const more = document.createElement("div");
-      more.style.cssText = "font-size:10px;color:var(--muted);text-align:right;margin-top:4px";
-      more.textContent = `他 ${overTasks.length - 4} 件`;
+      const more = document.createElement("button");
+      more.style.cssText = "font-size:11px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent2);border-radius:5px;padding:4px 8px;cursor:pointer;width:100%;margin-top:4px;font-family:var(--sans)";
+      more.textContent = `他 ${overTasks.length - 4} 件を全て見る`;
+      more.onclick = () => showSimDetail("over", overTasks);
       el.appendChild(more);
     }
 
@@ -1545,9 +1559,10 @@ function renderSim() {
       });
 
       if (adjustSuggestions.length > 3) {
-        const moreAdj = document.createElement("div");
-        moreAdj.style.cssText = "font-size:10px;color:var(--muted);text-align:right;margin-top:2px";
-        moreAdj.textContent = `他 ${adjustSuggestions.length - 3} 件`;
+        const moreAdj = document.createElement("button");
+        moreAdj.style.cssText = "font-size:11px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent2);border-radius:5px;padding:4px 8px;cursor:pointer;width:100%;margin-top:2px;font-family:var(--sans)";
+        moreAdj.textContent = `他 ${adjustSuggestions.length - 3} 件を全て見る`;
+        moreAdj.onclick = () => showSimDetail("adjust", adjustSuggestions);
         el.appendChild(moreAdj);
       }
     }
@@ -1559,8 +1574,68 @@ function renderSim() {
   }
 }
 
-// ── 期限をワンクリックで適用 ──────────────────────────────────
-function applyDeadline(id, newDate) {
+// ── SIM詳細モーダル ──────────────────────────────────────────
+function showSimDetail(type, items) {
+  const modal = document.getElementById("sim-detail-modal");
+  const title = document.getElementById("sim-detail-title");
+  const body  = document.getElementById("sim-detail-body");
+  modal.style.display = "flex";
+  body.innerHTML = "";
+
+  if (type === "over") {
+    title.textContent = `期限オーバー 全${items.length}件`;
+    items.forEach(t => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;justify-content:space-between;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 12px;";
+      const nm = document.createElement("span");
+      nm.style.cssText = "font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%";
+      nm.textContent = t.name;
+      const ov = document.createElement("span");
+      ov.style.cssText = "font-family:var(--mono);font-size:11px;color:var(--red);flex-shrink:0;margin-left:8px;white-space:nowrap";
+      ov.textContent = t.overWorkDays > 0 ? `稼働${t.overWorkDays}日遅れ` : "期限超過";
+      row.appendChild(nm); row.appendChild(ov);
+      body.appendChild(row);
+    });
+  } else if (type === "adjust") {
+    title.textContent = `納期調整の提案 全${items.length}件`;
+    items.forEach(t => {
+      const card = document.createElement("div");
+      card.style.cssText = "background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;";
+      const topRow = document.createElement("div");
+      topRow.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:6px";
+      const badge = document.createElement("span");
+      badge.style.cssText = `font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;flex-shrink:0;${
+        t.priority==="高" ? "background:#2d1515;color:var(--red)" :
+        t.priority==="中" ? "background:#1a2a40;color:var(--blue)" :
+        "background:#0d2e1e;color:#4ADE80"
+      }`;
+      badge.textContent = t.priority;
+      const nm = document.createElement("span");
+      nm.style.cssText = "font-size:12px;font-weight:500;color:var(--text)";
+      nm.textContent = t.name;
+      topRow.appendChild(badge); topRow.appendChild(nm);
+      card.appendChild(topRow);
+
+      const dlRow = document.createElement("div");
+      dlRow.style.cssText = "display:flex;align-items:center;gap:8px;font-size:11px;";
+      dlRow.innerHTML = `<span style="color:var(--muted)">現在:</span><span style="color:var(--red);font-family:var(--mono)">${t.deadline}</span><span style="color:var(--accent)">→</span><span style="color:var(--accent);font-family:var(--mono);font-weight:600">${t.finishDay}</span>`;
+      card.appendChild(dlRow);
+
+      const applyBtn = document.createElement("button");
+      applyBtn.style.cssText = "margin-top:8px;width:100%;background:var(--accent-dim);border:1px solid var(--accent2);color:var(--accent);font-family:var(--sans);font-size:11px;padding:5px 0;border-radius:5px;cursor:pointer;";
+      applyBtn.textContent = "この日付を適用";
+      applyBtn.onclick = () => { applyDeadline(t.id, t.finishDay); closeSimDetail(); };
+      card.appendChild(applyBtn);
+      body.appendChild(card);
+    });
+  }
+}
+function closeSimDetail() {
+  document.getElementById("sim-detail-modal").style.display = "none";
+}
+document.getElementById("sim-detail-modal").addEventListener("click", e => {
+  if (e.target === document.getElementById("sim-detail-modal")) closeSimDetail();
+});
   const t = tasks.find(x => x.id === id);
   if (!t) return;
   const old = t.deadline;
