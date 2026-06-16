@@ -1547,10 +1547,10 @@ function renderSim() {
 
         // ワンクリックで期限を更新するボタン
         const applyBtn = document.createElement("button");
-        applyBtn.style.cssText = "margin-top:5px;width:100%;background:var(--accent-dim);border:1px solid var(--accent2);color:var(--accent);font-family:var(--sans);font-size:10px;padding:3px 0;border-radius:4px;cursor:pointer;transition:background .15s";
+        applyBtn.style.cssText = "margin-top:5px;width:100%;background:var(--accent);border:none;color:#fff;font-family:var(--sans);font-size:10px;font-weight:600;padding:4px 0;border-radius:4px;cursor:pointer;transition:background .15s";
         applyBtn.textContent = "この日付を適用";
-        applyBtn.onmouseenter = () => applyBtn.style.background = "#1f5045";
-        applyBtn.onmouseleave = () => applyBtn.style.background = "var(--accent-dim)";
+        applyBtn.onmouseenter = () => applyBtn.style.background = "var(--accent2)";
+        applyBtn.onmouseleave = () => applyBtn.style.background = "var(--accent)";
         applyBtn.onclick = () => applyDeadline(t.id, t.finishDay);
         card.appendChild(applyBtn);
 
@@ -1621,7 +1621,9 @@ function showSimDetail(type, items) {
       card.appendChild(dlRow);
 
       const applyBtn = document.createElement("button");
-      applyBtn.style.cssText = "margin-top:8px;width:100%;background:var(--accent-dim);border:1px solid var(--accent2);color:var(--accent);font-family:var(--sans);font-size:11px;padding:5px 0;border-radius:5px;cursor:pointer;";
+      applyBtn.style.cssText = "margin-top:8px;width:100%;background:var(--accent);border:none;color:#fff;font-family:var(--sans);font-size:11px;font-weight:600;padding:5px 0;border-radius:5px;cursor:pointer;transition:background .15s";
+      applyBtn.onmouseenter = () => applyBtn.style.background = "var(--accent2)";
+      applyBtn.onmouseleave = () => applyBtn.style.background = "var(--accent)";
       applyBtn.textContent = "この日付を適用";
       applyBtn.onclick = () => { applyDeadline(t.id, t.finishDay); closeSimDetail(); };
       card.appendChild(applyBtn);
