@@ -302,6 +302,11 @@ body {
 .cal-cell.partial .cal-dot { background: var(--yellow); }
 .cal-cell.sun { color: var(--red); }
 .cal-cell.sat { color: var(--blue); }
+.cal-deadline-dots { display: flex; gap: 2px; justify-content: center; flex-wrap: wrap; }
+.cal-dl-dot { width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; }
+.cal-dl-dot.high   { background: var(--red); }
+.cal-dl-dot.mid    { background: var(--orange); }
+.cal-dl-dot.normal { background: var(--accent2); }
 
 /* DOW pattern grid */
 .dow-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px; }
@@ -532,6 +537,48 @@ tr:hover .row-actions { opacity: 1; }
 }
 .archive-btn:hover { border-color: var(--border2); color: var(--text); }
 
+/* Search highlight */
+mark {
+  background: rgba(250,204,21,.28);
+  color: var(--yellow);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* Memo cell truncation (11位) */
+.memo-cell {
+  max-width: 160px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.4;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* Rank badge (13位) */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--mono);
+  background: var(--surface2);
+  color: var(--muted2);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  cursor: help;
+  position: relative;
+}
+.rank-badge.top    { background: var(--accent-bg); color: var(--accent2); border-color: var(--accent2); }
+.rank-badge.urgent { background: var(--red-bg);    color: var(--red);     border-color: var(--red-border); }
+td.rank-cell { width: 28px; text-align: center; padding-right: 0; }
+
 /* ── Kanban ── */
 .kanban { display: none; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 18px 20px; }
 .k-col {
@@ -562,10 +609,15 @@ tr:hover .row-actions { opacity: 1; }
   cursor: pointer;
   font-size: 11px;
   transition: all .15s;
+  overflow: hidden;
 }
 .k-card:hover { border-color: var(--border2); box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-.k-card-title { font-weight: 500; color: var(--text); margin-bottom: 4px; }
-.k-card-meta { color: var(--muted2); font-size: 10px; font-family: var(--mono); display: flex; justify-content: space-between; }
+.k-card-title { font-weight: 500; color: var(--text); margin-bottom: 6px; }
+.k-card-meta { color: var(--muted2); font-size: 10px; font-family: var(--mono); display: flex; justify-content: space-between; margin-bottom: 8px; }
+.k-prog-track { height: 3px; background: var(--border); border-radius: 100px; overflow: hidden; }
+.k-prog-fill  { height: 100%; border-radius: 100px; background: var(--accent); transition: width .3s; }
+.k-prog-fill.warn   { background: var(--yellow); }
+.k-prog-fill.danger { background: var(--red); }
 
 /* ============================================================
    MODALS
@@ -771,6 +823,241 @@ kbd {
   color: var(--text);
 }
 
+/* Sort indicator (2位) */
+thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color .15s;
+}
+thead th.sortable:hover { color: var(--accent2); }
+thead th.sort-active { color: var(--accent2); }
+.sort-arrow { font-size: 9px; margin-left: 3px; opacity: .7; }
+
+/* Inline edit (5位) */
+.task-name-input {
+  background: var(--surface2);
+  border: 1px solid var(--accent2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--sans);
+  padding: 2px 6px;
+  border-radius: 4px;
+  outline: none;
+  width: 100%;
+  min-width: 120px;
+}
+
+/* Right-click context menu (4位) */
+#ctx-menu {
+  display: none;
+  position: fixed;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 4px;
+  min-width: 150px;
+  z-index: 999;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+#ctx-menu.open { display: block; }
+.ctx-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background .1s;
+  white-space: nowrap;
+}
+.ctx-item:hover { background: var(--surface2); color: var(--accent2); }
+.ctx-item.danger:hover { background: var(--red-bg); color: var(--red); }
+.ctx-sep { height: 1px; background: var(--border); margin: 3px 4px; }
+.ctx-sub { color: var(--muted); font-size: 10px; padding: 4px 10px 2px; }
+
+/* Report preview modal (3位) */
+#preview-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+#preview-modal.open { display: flex; }
+.preview-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,.3);
+  display: flex;
+  flex-direction: column;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+.preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.preview-toolbar span { font-size: 13px; font-weight: 600; color: var(--text); }
+.preview-toolbar-actions { display: flex; gap: 8px; }
+#preview-canvas-wrap {
+  overflow: auto;
+  flex: 1;
+  padding: 16px;
+  background: #e5e7eb;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+#preview-img {
+  max-width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+}
+
+/* Undo toast extra (1位) */
+#undo-hint {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 11px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: all .25s;
+  pointer-events: none;
+  z-index: 400;
+}
+#undo-hint.show { opacity: 1; transform: translateY(0); }
+
+/* ── Timeline / Gantt (4位) ── */
+.tl-toolbar, .retro-toolbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+}
+.tl-range-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.tl-wrap { padding: 16px 20px; overflow-x: auto; }
+.tl-grid { display: grid; min-width: 760px; }
+.tl-header-row { display: grid; grid-template-columns: 200px repeat(7, 1fr); margin-bottom: 8px; }
+.tl-header-cell { font-size: 11px; color: var(--muted); text-align: center; padding: 4px 0; font-weight: 600; }
+.tl-header-cell.today { color: var(--accent2); }
+.tl-row { display: grid; grid-template-columns: 200px repeat(7, 1fr); align-items: center; min-height: 38px; border-bottom: 1px solid var(--border); }
+.tl-row-name { font-size: 12px; color: var(--text); padding-right: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.tl-row-name:hover { color: var(--accent2); }
+.tl-cells { display: grid; grid-template-columns: repeat(7, 1fr); height: 100%; position: relative; }
+.tl-cell-bg { border-left: 1px solid var(--border); height: 100%; }
+.tl-bar {
+  position: absolute; height: 18px; border-radius: 4px; top: 50%; transform: translateY(-50%);
+  font-size: 9px; color: #fff; display: flex; align-items: center; padding-left: 6px;
+  overflow: hidden; white-space: nowrap; cursor: pointer; opacity: .92;
+}
+.tl-bar:hover { opacity: 1; }
+.tl-bar.high   { background: var(--red); }
+.tl-bar.mid    { background: var(--accent); }
+.tl-bar.low    { background: var(--accent3); color: var(--bg); }
+.tl-bar-fill { position: absolute; left:0; top:0; bottom:0; background: rgba(255,255,255,.35); border-radius: 4px 0 0 4px; }
+.tl-dep-line { position: absolute; border-top: 1px dashed var(--muted2); pointer-events: none; }
+.tl-today-line { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent2); opacity: .5; }
+
+/* ── Weekly Retro (3位) ── */
+.retro-body { padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+.retro-stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+.retro-stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.retro-stat-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.retro-stat-val { font-size: 22px; font-weight: 700; color: var(--text); }
+.retro-stat-val.good { color: var(--accent3); }
+.retro-stat-val.bad  { color: var(--red); }
+.retro-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.retro-section h4 { font-size: 12px; color: var(--muted); margin-bottom: 12px; font-weight: 600; }
+.retro-task-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.retro-task-row:last-child { border-bottom: none; }
+.retro-est-diff { font-family: var(--mono); font-size: 11px; }
+.retro-est-diff.over  { color: var(--red); }
+.retro-est-diff.under { color: var(--accent3); }
+.retro-est-diff.exact { color: var(--muted); }
+.retro-bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 100px; padding: 0 4px; }
+.retro-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.retro-bar-track { width: 100%; height: 80px; display: flex; align-items: flex-end; }
+.retro-bar-fill { width: 100%; border-radius: 3px 3px 0 0; background: var(--accent); min-height: 2px; }
+.retro-bar-label { font-size: 9px; color: var(--muted2); }
+
+/* ── Command Palette (5位) ── */
+#cmdk-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55);
+  backdrop-filter: blur(3px); z-index: 700; align-items: flex-start; justify-content: center; padding-top: 14vh;
+}
+#cmdk-overlay.open { display: flex; }
+.cmdk-box {
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 12px;
+  width: min(560px, 90vw); max-height: 60vh; overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,.4); display: flex; flex-direction: column;
+}
+#cmdk-input {
+  background: transparent; border: none; border-bottom: 1px solid var(--border);
+  color: var(--text); font-size: 15px; padding: 16px 18px; outline: none; font-family: var(--sans);
+}
+#cmdk-results { overflow-y: auto; padding: 6px; }
+.cmdk-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 12px; border-radius: 7px; cursor: pointer; font-size: 13px; color: var(--text);
+}
+.cmdk-item.active { background: var(--accent-bg); color: var(--accent2); }
+.cmdk-item-meta { font-size: 10px; color: var(--muted2); font-family: var(--mono); }
+.cmdk-section-label { font-size: 10px; color: var(--muted2); padding: 8px 12px 4px; text-transform: uppercase; letter-spacing: .04em; }
+.cmdk-empty { padding: 24px; text-align: center; color: var(--muted); font-size: 12px; }
+
+/* ── Focus Mode (6位) ── */
+#focus-picker-overlay, #focus-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7);
+  backdrop-filter: blur(6px); z-index: 800; align-items: center; justify-content: center;
+}
+#focus-picker-overlay.open, #focus-overlay.open { display: flex; }
+.focus-picker-box {
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 14px;
+  padding: 22px; width: min(420px,90vw); max-height: 70vh; display: flex; flex-direction: column;
+}
+.focus-picker-box h3 { font-size: 14px; margin-bottom: 14px; color: var(--text); }
+#focus-picker-list { overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.focus-pick-item {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 12px; cursor: pointer; font-size: 12px; color: var(--text);
+}
+.focus-pick-item:hover { border-color: var(--accent2); }
+.focus-box {
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 20px;
+  padding: 40px 50px; width: min(420px,92vw); text-align: center; position: relative;
+  box-shadow: 0 30px 80px rgba(0,0,0,.4);
+}
+.focus-exit { position: absolute; top: 16px; right: 18px; cursor: pointer; color: var(--muted); font-size: 14px; }
+.focus-exit:hover { color: var(--text); }
+.focus-task-name { font-size: 14px; color: var(--muted); margin-bottom: 18px; }
+.focus-timer { font-size: 56px; font-weight: 700; font-family: var(--mono); color: var(--text); letter-spacing: .02em; }
+.focus-phase { font-size: 12px; color: var(--accent2); margin: 6px 0 22px; font-weight: 600; }
+.focus-controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 24px; }
+.focus-progress-row label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 8px; }
+.focus-progress-row span#focus-progress-val { font-size: 16px; font-weight: 600; color: var(--text); min-width: 44px; }
+.focus-cycles { margin-top: 20px; font-size: 11px; color: var(--muted2); }
+
 /* Selected row highlight */
 tr.row-selected { background: var(--accent-bg) !important; outline: 1px solid var(--accent2); outline-offset: -1px; }
 tr.row-selected td { background: transparent; }
@@ -864,24 +1151,29 @@ tr.row-selected td { background: transparent; }
       </div>
       <div class="filter-tags" id="filter-tags"></div>
       <span class="filter-count" id="filter-count"></span>
+      <button class="filter-sel" id="sort-reset-btn" onclick="resetSort()" style="display:none" title="スコア順に戻す">↺ スコア順に戻す</button>
       <button class="filter-reset" id="filter-reset" onclick="resetFilters()" title="フィルターをリセット">✕ リセット</button>
     </div>
     <div class="topbar-actions">
       <div class="view-tabs-topbar">
         <button class="tab-top active" id="btnList" onclick="showList()" data-tip="一覧表示 (V)">&#9776; 一覧</button>
         <button class="tab-top"        id="btnBoard" onclick="showBoard()" data-tip="カンバン表示 (V)">&#8862; カンバン</button>
+        <button class="tab-top"        id="btnTimeline" onclick="showTimeline()" data-tip="タイムライン表示">&#128197; タイムライン</button>
+        <button class="tab-top"        id="btnRetro" onclick="showRetro()" data-tip="週次振り返り">&#128202; 振り返り</button>
       </div>
       <div class="topbar-divider"></div>
       <!-- その他メニュー -->
       <div style="position:relative">
         <button class="btn hide-sm" id="more-btn" onclick="toggleMoreMenu()" data-tip="その他の操作">⋯</button>
         <div id="more-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:6px;min-width:140px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.2);">
-          <button class="btn" style="width:100%;text-align:left;margin-bottom:4px" onclick="downloadReport();toggleMoreMenu()">週報画像</button>
+          <button class="btn" style="width:100%;text-align:left;margin-bottom:4px" onclick="previewReport();toggleMoreMenu()">週報プレビュー</button>
           <button class="btn" style="width:100%;text-align:left;margin-bottom:4px" onclick="exportTasks();toggleMoreMenu()">エクスポート</button>
           <button class="btn" style="width:100%;text-align:left" onclick="document.getElementById('file').click();toggleMoreMenu()">インポート</button>
         </div>
       </div>
       <input type="file" id="file" style="display:none" onchange="importTasks(event)">
+      <button class="btn hide-sm" onclick="openCommandPalette()" data-tip="コマンドパレット (⌘K)">⌘K</button>
+      <button class="btn hide-sm" onclick="openFocusPicker()" data-tip="フォーカスモード">🎯 集中</button>
       <button class="btn hide-sm" onclick="openKbdHelp()" data-tip="キーボードショートカット (?)">⌨ ショートカット</button>
     </div>
   </header>
@@ -973,7 +1265,13 @@ tr.row-selected td { background: transparent; }
     <div id="list-view" class="table-wrap">
       <table>
         <thead><tr>
-          <th>タスク</th><th>優先</th><th>状態</th><th>期限</th><th>進捗</th><th>メモ</th><th></th>
+          <th style="width:28px"></th>
+          <th>タスク</th>
+          <th class="sortable" onclick="toggleSort('priority')" id="th-priority">優先 <span class="sort-arrow" id="sa-priority"></span></th>
+          <th>状態</th>
+          <th class="sortable" onclick="toggleSort('deadline')" id="th-deadline">期限 <span class="sort-arrow" id="sa-deadline"></span></th>
+          <th class="sortable" onclick="toggleSort('progress')" id="th-progress">進捗 <span class="sort-arrow" id="sa-progress"></span></th>
+          <th>メモ</th><th></th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table>
@@ -1010,6 +1308,27 @@ tr.row-selected td { background: transparent; }
         <div id="k-doneK"></div>
       </div>
     </div>
+
+    <!-- TIMELINE / GANTT VIEW -->
+    <div id="timeline-view" style="display:none">
+      <div class="tl-toolbar">
+        <button class="btn" onclick="tlMove(-7)">‹ 前週</button>
+        <span id="tl-range-label" class="tl-range-label"></span>
+        <button class="btn" onclick="tlMove(7)">次週 ›</button>
+        <button class="btn" onclick="tlToday()">今日</button>
+      </div>
+      <div class="tl-wrap" id="tl-wrap"></div>
+    </div>
+
+    <!-- WEEKLY RETRO VIEW -->
+    <div id="retro-view" style="display:none">
+      <div class="retro-toolbar">
+        <button class="btn" onclick="retroMove(-1)">‹ 前週</button>
+        <span id="retro-range-label" class="tl-range-label"></span>
+        <button class="btn" onclick="retroMove(1)">次週 ›</button>
+      </div>
+      <div id="retro-body" class="retro-body"></div>
+    </div>
   </main>
 </div>
 
@@ -1026,6 +1345,19 @@ tr.row-selected td { background: transparent; }
     <div class="modal-field"><label>工数 (h)</label><input id="m_estimate" type="number" step="0.5"></div>
     <div class="modal-field"><label>進捗 (%)</label><input id="m_progress" type="number" min="0" max="100"></div>
     <div class="modal-field"><label>メモ</label><textarea id="m_memo"></textarea></div>
+    <div class="modal-field">
+      <label>先行タスク（このタスクの前に終わらせるもの）</label>
+      <select id="m_dependsOn"><option value="">なし</option></select>
+    </div>
+    <div class="modal-field">
+      <label>繰り返し</label>
+      <select id="m_repeat">
+        <option value="">なし</option>
+        <option value="daily">毎日</option>
+        <option value="weekly">毎週</option>
+        <option value="monthly">毎月</option>
+      </select>
+    </div>
     <div class="subtask-section">
       <div class="subtask-section-label">サブタスク</div>
       <div class="subtask-list" id="subtask-list"></div>
@@ -1062,12 +1394,84 @@ tr.row-selected td { background: transparent; }
   </div>
 </div>
 
+<!-- COMMAND PALETTE -->
+<div id="cmdk-overlay">
+  <div class="cmdk-box">
+    <input id="cmdk-input" placeholder="コマンドを入力、またはタスクを検索…" autocomplete="off">
+    <div id="cmdk-results"></div>
+  </div>
+</div>
+
+<!-- FOCUS MODE PICKER -->
+<div id="focus-picker-overlay">
+  <div class="focus-picker-box">
+    <h3>🎯 集中するタスクを選択</h3>
+    <div id="focus-picker-list"></div>
+    <button class="btn" onclick="closeFocusPicker()" style="margin-top:12px;width:100%">閉じる</button>
+  </div>
+</div>
+
+<!-- FOCUS MODE (Pomodoro) -->
+<div id="focus-overlay">
+  <div class="focus-box">
+    <div class="focus-exit" onclick="exitFocus()" title="集中モードを終了 (Esc)">✕</div>
+    <div class="focus-task-name" id="focus-task-name"></div>
+    <div class="focus-timer" id="focus-timer">25:00</div>
+    <div class="focus-phase" id="focus-phase">集中タイム</div>
+    <div class="focus-controls">
+      <button class="btn btn-accent" id="focus-toggle" onclick="focusToggleTimer()">開始</button>
+      <button class="btn" onclick="focusReset()">リセット</button>
+    </div>
+    <div class="focus-progress-row">
+      <label>進捗を更新</label>
+      <div style="display:flex;align-items:center;gap:10px;justify-content:center">
+        <button class="quick-btn" onclick="focusAdjustProgress(-10)">−10%</button>
+        <span id="focus-progress-val">0%</span>
+        <button class="quick-btn" onclick="focusAdjustProgress(10)">+10%</button>
+      </div>
+    </div>
+    <div class="focus-cycles" id="focus-cycles"></div>
+  </div>
+</div>
+
 <div id="toast"></div>
+<div id="undo-hint">↩ Ctrl+Z で元に戻せます</div>
+
+<!-- RIGHT-CLICK CONTEXT MENU (4位) -->
+<div id="ctx-menu">
+  <div class="ctx-sub">操作</div>
+  <button class="ctx-item" id="ctx-edit"   onclick="ctxAction('edit')">✏ 編集</button>
+  <div class="ctx-sep"></div>
+  <div class="ctx-sub">優先度</div>
+  <button class="ctx-item" id="ctx-p1"     onclick="ctxAction('p1')">● 高</button>
+  <button class="ctx-item" id="ctx-p2"     onclick="ctxAction('p2')">● 中</button>
+  <button class="ctx-item" id="ctx-p3"     onclick="ctxAction('p3')">● 低</button>
+  <div class="ctx-sep"></div>
+  <button class="ctx-item" id="ctx-wait"   onclick="ctxAction('wait')">⏸ 待機切替</button>
+  <button class="ctx-item danger" id="ctx-del" onclick="ctxAction('del')">✕ 削除</button>
+</div>
+
+<!-- REPORT PREVIEW MODAL (3位) -->
+<div id="preview-modal">
+  <div class="preview-box">
+    <div class="preview-toolbar">
+      <span>週報プレビュー</span>
+      <div class="preview-toolbar-actions">
+        <button class="btn" id="preview-dl-btn" onclick="downloadFromPreview()">⬇ ダウンロード</button>
+        <button class="btn" onclick="closePreview()">閉じる</button>
+      </div>
+    </div>
+    <div id="preview-canvas-wrap">
+      <img id="preview-img" src="" alt="週報プレビュー">
+    </div>
+  </div>
+</div>
 
 <!-- KEYBOARD HELP MODAL -->
 <div id="kbd-help">
   <div class="kbd-box">
     <h3>⌨ キーボードショートカット</h3>
+    <div class="kbd-row"><span>元に戻す (Undo)</span><kbd>Ctrl</kbd>+<kbd>Z</kbd></div>
     <div class="kbd-row"><span>新規タスク入力欄へ</span><kbd>N</kbd></div>
     <div class="kbd-row"><span>検索欄へ</span><kbd>/</kbd></div>
     <div class="kbd-row"><span>選択タスクを編集</span><kbd>E</kbd></div>
@@ -1078,7 +1482,11 @@ tr.row-selected td { background: transparent; }
     <div class="kbd-row"><span>一覧 / カンバン 切替</span><kbd>V</kbd></div>
     <div class="kbd-row"><span>保存</span><kbd>Ctrl</kbd>+<kbd>S</kbd></div>
     <div class="kbd-row"><span>モーダルを閉じる / キャンセル</span><kbd>Esc</kbd></div>
+    <div class="kbd-row"><span>コマンドパレット</span><kbd>Ctrl</kbd>+<kbd>K</kbd></div>
     <div class="kbd-row"><span>このヘルプを表示</span><kbd>?</kbd></div>
+    <div class="kbd-row"><span>タスク名を直接編集</span><span style="color:var(--muted)">ダブルクリック</span></div>
+    <div class="kbd-row"><span>コンテキストメニュー</span><span style="color:var(--muted)">右クリック</span></div>
+    <div class="kbd-row"><span>列ソート（優先/期限/進捗）</span><span style="color:var(--muted)">列ヘッダークリック</span></div>
     <div style="margin-top:14px;text-align:right">
       <button class="btn" onclick="closeKbdHelp()">閉じる</button>
     </div>
@@ -1144,10 +1552,36 @@ function esc(str) {
   return String(str ?? "").replace(/[&<>"']/g, s =>
     ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]));
 }
+// 6位: 検索キーワードハイライト
+function highlight(str, kw) {
+  const escaped = esc(str);
+  if (!kw) return escaped;
+  const re = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+  return escaped.replace(re, m => `<mark>${m}</mark>`);
+}
 
 // ============================================================
-//  Storage helpers
+//  1位: Undo history
 // ============================================================
+const MAX_HISTORY = 30;
+let _history = [];
+let _undoHintTimer = null;
+function pushHistory() {
+  _history.push(JSON.stringify(tasks));
+  if (_history.length > MAX_HISTORY) _history.shift();
+}
+function undo() {
+  if (_history.length === 0) { showToast("これ以上戻れません"); return; }
+  tasks = JSON.parse(_history.pop());
+  save(true);
+  showToast("元に戻しました", "info");
+}
+function showUndoHint() {
+  const el = $("undo-hint");
+  el.classList.add("show");
+  if (_undoHintTimer) clearTimeout(_undoHintTimer);
+  _undoHintTimer = setTimeout(() => el.classList.remove("show"), 3000);
+}
 const $ = id => document.getElementById(id);
 
 let tasks;
@@ -1230,7 +1664,7 @@ function score(t) {
   const quickWin = remain <= 1 && remain > 0 ? 0.5 : 0;
   return layer + urgency + risk + noDeadline + momentum + quick * 0.3 + priority + quickWin;
 }
-function sortTasks() { tasks.sort((a, b) => score(b) - score(a)); }
+// sortTasks: see 2位 column sort above
 
 // ============================================================
 //  Status
@@ -1351,8 +1785,11 @@ document.addEventListener("keydown", e => {
 
   // 常時有効
   if (e.ctrlKey && e.key === "s") { e.preventDefault(); save(true); showToast("保存しました", "info"); return; }
+  if (e.ctrlKey && e.key === "z") { e.preventDefault(); undo(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key === "k") { e.preventDefault(); openCommandPalette(); return; }
   if (e.key === "Escape") {
-    closeModal(); closeDayModal(); closeKbdHelp();
+    closeModal(); closeDayModal(); closeKbdHelp(); closeCommandPalette(); closeFocusPicker();
+    if ($("focus-overlay").classList.contains("open")) exitFocus();
     const mm = $("more-menu"); if (mm) mm.style.display = "none";
     return;
   }
@@ -1383,9 +1820,9 @@ document.addEventListener("keydown", e => {
     const t = tasks.find(x => x.id === selectedRowId);
     if (!t) return;
     if (e.key === "e" || e.key === "E") { edit(selectedRowId); return; }
-    if (e.key === "1") { t.priority = "高"; save(true); showToast("優先度: 高", "warn"); return; }
-    if (e.key === "2") { t.priority = "中"; save(true); showToast("優先度: 中", "info"); return; }
-    if (e.key === "3") { t.priority = "低"; save(true); showToast("優先度: 低"); return; }
+    if (e.key === "1") { pushHistory(); t.priority = "高"; save(true); showToast("優先度: 高", "warn"); showUndoHint(); return; }
+    if (e.key === "2") { pushHistory(); t.priority = "中"; save(true); showToast("優先度: 中", "info"); showUndoHint(); return; }
+    if (e.key === "3") { pushHistory(); t.priority = "低"; save(true); showToast("優先度: 低"); showUndoHint(); return; }
     if (e.key === "p" || e.key === "P") { quickProgress(selectedRowId); return; }
     if (e.key === "w" || e.key === "W") { toggleWait(selectedRowId); return; }
     if (e.key === "Delete" || e.key === "Backspace") { del(selectedRowId); return; }
@@ -1393,6 +1830,307 @@ document.addEventListener("keydown", e => {
 });
 $("subtask-input").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addSubtask(); } });
 $("search").oninput = e => { keyword = e.target.value.toLowerCase(); updateFilterReset(); render(); };
+
+// ============================================================
+//  2位: Column sort
+// ============================================================
+let sortCol = null, sortDir = 1; // null=score順, 'priority'/'deadline'/'progress'
+const PRIO_ORDER = { 高: 0, 中: 1, 低: 2 };
+function toggleSort(col) {
+  if (sortCol === col) {
+    if (sortDir === 1) {
+      sortDir = -1; // 降順へ
+    } else {
+      sortCol = null; sortDir = 1; // 3回目クリックでスコア順に戻す
+    }
+  } else {
+    sortCol = col; sortDir = 1;
+  }
+  updateSortHeader(); render();
+}
+function updateSortHeader() {
+  ["priority","deadline","progress"].forEach(col => {
+    const th = $("th-" + col); const sa = $("sa-" + col);
+    if (!th || !sa) return;
+    th.classList.toggle("sort-active", sortCol === col);
+    sa.textContent = sortCol === col ? (sortDir === 1 ? "↑" : "↓") : "";
+  });
+  $("sort-reset-btn").style.display = sortCol ? "inline-flex" : "none";
+}
+function resetSort() {
+  sortCol = null; sortDir = 1;
+  updateSortHeader(); render();
+  showToast("スコア順に戻しました", "info");
+}
+function sortTasks() {
+  if (!sortCol) {
+    tasks.sort((a, b) => score(b) - score(a));
+  } else if (sortCol === "priority") {
+    tasks.sort((a, b) => (PRIO_ORDER[a.priority] - PRIO_ORDER[b.priority]) * sortDir);
+  } else if (sortCol === "deadline") {
+    tasks.sort((a, b) => {
+      const da = a.deadline || "9999-99-99", db = b.deadline || "9999-99-99";
+      return (da < db ? -1 : da > db ? 1 : 0) * sortDir;
+    });
+  } else if (sortCol === "progress") {
+    tasks.sort((a, b) => (a.progress - b.progress) * sortDir);
+  }
+}
+
+// ============================================================
+//  4位: Right-click context menu
+// ============================================================
+let _ctxTargetId = null;
+document.addEventListener("contextmenu", e => {
+  const row = e.target.closest("tr[data-id]");
+  if (!row) return;
+  e.preventDefault();
+  _ctxTargetId = Number(row.dataset.id);
+  setSelectedRow(_ctxTargetId);
+  const menu = $("ctx-menu");
+  menu.classList.add("open");
+  const x = Math.min(e.clientX, window.innerWidth  - menu.offsetWidth  - 8);
+  const y = Math.min(e.clientY, window.innerHeight - menu.offsetHeight - 8);
+  menu.style.left = x + "px"; menu.style.top = y + "px";
+});
+document.addEventListener("click", e => {
+  if (!e.target.closest("#ctx-menu")) $("ctx-menu").classList.remove("open");
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") $("ctx-menu").classList.remove("open");
+}, true);
+function ctxAction(action) {
+  $("ctx-menu").classList.remove("open");
+  const id = _ctxTargetId; if (id == null) return;
+  const t = tasks.find(x => x.id === id); if (!t) return;
+  if (action === "edit")   { edit(id); }
+  else if (action === "p1") { pushHistory(); t.priority = "高"; save(true); showToast("優先度: 高", "warn"); showUndoHint(); }
+  else if (action === "p2") { pushHistory(); t.priority = "中"; save(true); showToast("優先度: 中", "info"); showUndoHint(); }
+  else if (action === "p3") { pushHistory(); t.priority = "低"; save(true); showToast("優先度: 低"); showUndoHint(); }
+  else if (action === "wait") { toggleWait(id); }
+  else if (action === "del")  { del(id); }
+}
+
+// ============================================================
+//  5位: Task name double-click inline edit
+// ============================================================
+function startInlineEdit(el, taskId) {
+  const t = tasks.find(x => x.id === taskId); if (!t) return;
+  const original = t.name;
+  const inp = document.createElement("input");
+  inp.className = "task-name-input";
+  inp.value = original;
+  el.replaceWith(inp);
+  inp.focus(); inp.select();
+  function commit() {
+    const newName = inp.value.trim();
+    if (newName && newName !== original) {
+      pushHistory(); t.name = newName; save(true); showToast("タスク名を更新しました", "info"); showUndoHint();
+    } else {
+      save(true); // re-render to restore
+    }
+  }
+  inp.addEventListener("keydown", e => {
+    if (e.key === "Enter")  { e.preventDefault(); commit(); }
+    if (e.key === "Escape") { t.name = original; save(true); }
+  });
+  inp.addEventListener("blur", commit);
+}
+
+// ============================================================
+//  3位: Report preview modal
+// ============================================================
+let _previewDataURL = null, _previewFilename = null;
+function previewReport() {
+  const { dataURL, filename } = buildReport();
+  _previewDataURL = dataURL; _previewFilename = filename;
+  $("preview-img").src = dataURL;
+  $("preview-modal").classList.add("open");
+}
+function downloadFromPreview() {
+  if (!_previewDataURL) return;
+  const a = document.createElement("a");
+  a.href = _previewDataURL; a.download = _previewFilename; a.click();
+  showToast("週報画像をダウンロードしました", "info");
+  closePreview();
+}
+function closePreview() { $("preview-modal").classList.remove("open"); }
+$("preview-modal").addEventListener("click", e => { if (e.target === $("preview-modal")) closePreview(); });
+
+function scrollToTask(id) {
+  // リスト表示に切り替え
+  if (!$("list-view").style.display || $("list-view").style.display === "none") showList();
+  // フィルターで隠れている可能性があればリセット
+  const row = document.querySelector(`tr[data-id="${id}"]`);
+  if (!row) { resetFilters(); }
+  setTimeout(() => {
+    const r = document.querySelector(`tr[data-id="${id}"]`);
+    if (r) { r.scrollIntoView({ behavior: "smooth", block: "center" }); setSelectedRow(id); }
+  }, 50);
+}
+// ============================================================
+//  5位: Command Palette (⌘K)
+// ============================================================
+let cmdkActiveIdx = 0, cmdkItems = [];
+function getCommands() {
+  return [
+    { label: "新規タスクを追加",     icon: "＋", action: () => { closeCommandPalette(); $("name").focus(); } },
+    { label: "一覧表示に切り替え",   icon: "☰", action: () => { closeCommandPalette(); showList(); } },
+    { label: "カンバン表示に切り替え", icon: "▦", action: () => { closeCommandPalette(); showBoard(); } },
+    { label: "タイムライン表示に切り替え", icon: "📅", action: () => { closeCommandPalette(); showTimeline(); } },
+    { label: "週次振り返りを開く",   icon: "📊", action: () => { closeCommandPalette(); showRetro(); } },
+    { label: "高優先度のタスクのみ表示", icon: "●", action: () => { closeCommandPalette(); $("f-priority").value="高"; applyFilters(); showList(); } },
+    { label: "今日締切のタスクを表示", icon: "⏰", action: () => { closeCommandPalette(); $("f-deadline").value="today"; applyFilters(); showList(); } },
+    { label: "遅延・危険タスクを表示", icon: "⚠", action: () => { closeCommandPalette(); $("f-status").value="danger"; applyFilters(); showList(); } },
+    { label: "フィルターをリセット", icon: "✕", action: () => { closeCommandPalette(); resetFilters(); } },
+    { label: "週報プレビューを開く", icon: "🖼", action: () => { closeCommandPalette(); previewReport(); } },
+    { label: "エクスポート",         icon: "⬇", action: () => { closeCommandPalette(); exportTasks(); } },
+    { label: "集中モードを開始",     icon: "🎯", action: () => { closeCommandPalette(); openFocusPicker(); } },
+    { label: "完了済みを表示/非表示", icon: "✓", action: () => { closeCommandPalette(); toggleDone(); } },
+    { label: "元に戻す (Undo)",      icon: "↩", action: () => { closeCommandPalette(); undo(); } },
+    { label: "ショートカット一覧",   icon: "⌨", action: () => { closeCommandPalette(); openKbdHelp(); } },
+  ];
+}
+function openCommandPalette() {
+  $("cmdk-overlay").classList.add("open");
+  $("cmdk-input").value = "";
+  cmdkActiveIdx = 0;
+  renderCmdkResults("");
+  setTimeout(() => $("cmdk-input").focus(), 10);
+}
+function closeCommandPalette() { $("cmdk-overlay").classList.remove("open"); }
+function renderCmdkResults(query) {
+  const q = query.trim().toLowerCase();
+  const results = $("cmdk-results"); results.innerHTML = "";
+  cmdkItems = [];
+
+  // タスク検索結果
+  if (q) {
+    const matchedTasks = tasks.filter(t => t.progress < 100 && t.name.toLowerCase().includes(q)).slice(0, 6);
+    if (matchedTasks.length > 0) {
+      const label = document.createElement("div"); label.className = "cmdk-section-label"; label.textContent = "タスク";
+      results.appendChild(label);
+      matchedTasks.forEach(t => {
+        cmdkItems.push({ label: t.name, action: () => { closeCommandPalette(); showList(); setTimeout(()=>scrollToTask(t.id),50); } });
+      });
+    }
+  }
+  // コマンド
+  const cmds = getCommands().filter(c => !q || c.label.toLowerCase().includes(q));
+  if (cmds.length > 0) {
+    const label = document.createElement("div"); label.className = "cmdk-section-label"; label.textContent = "コマンド";
+    results.appendChild(label);
+    cmds.forEach(c => cmdkItems.push(c));
+  }
+
+  if (cmdkItems.length === 0) {
+    results.innerHTML += `<div class="cmdk-empty">該当する結果がありません</div>`;
+    return;
+  }
+  cmdkActiveIdx = Math.min(cmdkActiveIdx, cmdkItems.length - 1);
+  cmdkItems.forEach((item, i) => {
+    const el = document.createElement("div");
+    el.className = "cmdk-item" + (i === cmdkActiveIdx ? " active" : "");
+    el.innerHTML = `<span>${item.icon ? item.icon + " " : ""}${esc(item.label)}</span>`;
+    el.onmouseenter = () => { cmdkActiveIdx = i; updateCmdkActive(); };
+    el.onclick = () => item.action();
+    results.appendChild(el);
+  });
+}
+function updateCmdkActive() {
+  document.querySelectorAll(".cmdk-item").forEach((el,i) => el.classList.toggle("active", i===cmdkActiveIdx));
+  const activeEl = document.querySelectorAll(".cmdk-item")[cmdkActiveIdx];
+  if (activeEl) activeEl.scrollIntoView({ block: "nearest" });
+}
+$("cmdk-input").addEventListener("input", e => { cmdkActiveIdx = 0; renderCmdkResults(e.target.value); });
+$("cmdk-input").addEventListener("keydown", e => {
+  if (e.key === "ArrowDown") { e.preventDefault(); cmdkActiveIdx = Math.min(cmdkActiveIdx+1, cmdkItems.length-1); updateCmdkActive(); }
+  if (e.key === "ArrowUp")   { e.preventDefault(); cmdkActiveIdx = Math.max(cmdkActiveIdx-1, 0); updateCmdkActive(); }
+  if (e.key === "Enter")     { e.preventDefault(); if (cmdkItems[cmdkActiveIdx]) cmdkItems[cmdkActiveIdx].action(); }
+  if (e.key === "Escape")    { closeCommandPalette(); }
+});
+$("cmdk-overlay").addEventListener("click", e => { if (e.target === $("cmdk-overlay")) closeCommandPalette(); });
+
+// ============================================================
+//  6位: Focus Mode (Pomodoro)
+// ============================================================
+let focusTaskId = null, focusInterval = null, focusSecondsLeft = 25*60, focusPhase = "work", focusCyclesDone = 0, focusRunning = false;
+const FOCUS_WORK_SEC = 25*60, FOCUS_BREAK_SEC = 5*60;
+function openFocusPicker() {
+  const list = $("focus-picker-list"); list.innerHTML = "";
+  const active = tasks.filter(t => t.progress < 100).sort((a,b) => score(b)-score(a));
+  if (active.length === 0) {
+    list.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px">対象タスクがありません</div>`;
+  } else {
+    active.forEach(t => {
+      const item = document.createElement("div"); item.className = "focus-pick-item";
+      item.onclick = () => startFocus(t.id);
+      item.innerHTML = `<span>${esc(t.name)}</span><span style="color:var(--muted2);font-family:var(--mono);font-size:10px">${t.progress}%</span>`;
+      list.appendChild(item);
+    });
+  }
+  $("focus-picker-overlay").classList.add("open");
+}
+function closeFocusPicker() { $("focus-picker-overlay").classList.remove("open"); }
+function startFocus(taskId) {
+  closeFocusPicker();
+  focusTaskId = taskId;
+  focusSecondsLeft = FOCUS_WORK_SEC; focusPhase = "work"; focusCyclesDone = 0; focusRunning = false;
+  const t = tasks.find(x => x.id === taskId);
+  $("focus-task-name").textContent = t ? t.name : "";
+  $("focus-progress-val").textContent = (t ? t.progress : 0) + "%";
+  updateFocusTimerDisplay();
+  $("focus-toggle").textContent = "開始";
+  $("focus-cycles").textContent = "";
+  $("focus-overlay").classList.add("open");
+}
+function updateFocusTimerDisplay() {
+  const m = Math.floor(focusSecondsLeft/60), s = focusSecondsLeft%60;
+  $("focus-timer").textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  $("focus-phase").textContent = focusPhase === "work" ? "集中タイム" : "休憩タイム";
+  $("focus-cycles").textContent = focusCyclesDone > 0 ? `完了サイクル: ${focusCyclesDone}` : "";
+}
+function focusToggleTimer() {
+  if (focusRunning) {
+    clearInterval(focusInterval); focusRunning = false; $("focus-toggle").textContent = "再開";
+  } else {
+    focusRunning = true; $("focus-toggle").textContent = "一時停止";
+    focusInterval = setInterval(() => {
+      focusSecondsLeft--;
+      if (focusSecondsLeft <= 0) {
+        if (focusPhase === "work") {
+          focusCyclesDone++; focusPhase = "break"; focusSecondsLeft = FOCUS_BREAK_SEC;
+          showToast("お疲れさまです。休憩しましょう", "success");
+        } else {
+          focusPhase = "work"; focusSecondsLeft = FOCUS_WORK_SEC;
+          showToast("休憩終了。再開しましょう", "info");
+        }
+      }
+      updateFocusTimerDisplay();
+    }, 1000);
+  }
+}
+function focusReset() {
+  clearInterval(focusInterval); focusRunning = false;
+  focusSecondsLeft = focusPhase === "work" ? FOCUS_WORK_SEC : FOCUS_BREAK_SEC;
+  $("focus-toggle").textContent = "開始";
+  updateFocusTimerDisplay();
+}
+function focusAdjustProgress(delta) {
+  const t = tasks.find(x => x.id === focusTaskId); if (!t) return;
+  pushHistory();
+  const next = Math.max(0, Math.min(100, t.progress + delta));
+  t.progress = next;
+  if (next >= 100) { t.status = "完了"; t.completedAt = t.completedAt || todayJST(); maybeSpawnRecurring(t); }
+  save(true);
+  $("focus-progress-val").textContent = next + "%";
+  if (next >= 100) { showToast(`「${t.name}」完了！`, "success"); exitFocus(); }
+}
+function exitFocus() {
+  clearInterval(focusInterval); focusRunning = false;
+  $("focus-overlay").classList.remove("open");
+}
+$("focus-picker-overlay").addEventListener("click", e => { if (e.target === $("focus-picker-overlay")) closeFocusPicker(); });
 
 function openKbdHelp()  { $("kbd-help").classList.add("open"); }
 function closeKbdHelp() { $("kbd-help").classList.remove("open"); }
@@ -1409,19 +2147,36 @@ document.addEventListener("click", e => {
 });
 
 let keyword = "", showDone = false, currentId = null;
-let filterPriority = "", filterStatus = "", filterDeadline = "";
+// 8位: フィルター状態を永続化
+let _savedFilter = {};
+try { _savedFilter = JSON.parse(localStorage.getItem("taskflow_filter") || "{}"); } catch {}
+let filterPriority = _savedFilter.priority || "";
+let filterStatus   = _savedFilter.status   || "";
+let filterDeadline = _savedFilter.deadline  || "";
+// 復元時にselect要素にも反映（DOMが準備できたら実行）
+function restoreFilterUI() {
+  $("f-priority").value = filterPriority;
+  $("f-status").value   = filterStatus;
+  $("f-deadline").value = filterDeadline;
+  if (keyword || filterPriority || filterStatus || filterDeadline) updateFilterReset();
+}
 
+function saveFilterState() {
+  localStorage.setItem("taskflow_filter", JSON.stringify({
+    priority: filterPriority, status: filterStatus, deadline: filterDeadline
+  }));
+}
 function applyFilters() {
   filterPriority = $("f-priority").value;
   filterStatus   = $("f-status").value;
   filterDeadline = $("f-deadline").value;
-  updateFilterReset(); render();
+  saveFilterState(); updateFilterReset(); render();
 }
 function resetFilters() {
   $("f-priority").value = ""; $("f-status").value = ""; $("f-deadline").value = "";
   filterPriority = ""; filterStatus = ""; filterDeadline = "";
   keyword = ""; $("search").value = "";
-  updateFilterReset(); render();
+  saveFilterState(); updateFilterReset(); render();
 }
 
 // フィルターボタンをクリックするとプルダウンをトグル
@@ -1675,6 +2430,7 @@ function render() {
   $("done-table").innerHTML = "";
   ["k-todo","k-doing","k-waiting","k-doneK"].forEach(id => $(id).innerHTML = "");
   let doneNum = 0;
+  let rankCounter = 0;
 
   tasks.forEach(t => {
     if (!taskMatchesFilters(t)) return;
@@ -1683,11 +2439,38 @@ function render() {
     const pc = progClass(t);
     const dl = relDeadline(t.deadline);
     const sp = subtaskProgress(t);
-    const stHint = sp ? `<div class="subtask-hint">${sp.done}/${sp.total} 完了</div>` : "";
+    let stHint = sp ? `<div class="subtask-hint">${sp.done}/${sp.total} 完了</div>` : "";
+    // 依存関係: ブロック中の表示
+    if (isBlocked(t)) {
+      const dep = tasks.find(x => x.id === t.dependsOn);
+      stHint += `<div class="subtask-hint" style="color:var(--orange)">⛓ 「${esc(dep.name)}」待ち</div>`;
+    }
+    if (t.repeat) {
+      const repLabel = { daily:"毎日", weekly:"毎週", monthly:"毎月" }[t.repeat] || t.repeat;
+      stHint += `<div class="subtask-hint" style="color:var(--muted2)">↻ ${repLabel}</div>`;
+    }
+    // 6位: ハイライト付きタスク名
+    const hlName = highlight(t.name, keyword);
+    // 11位: メモ截断
+    const memoHtml = t.memo
+      ? `<div class="memo-cell" title="${esc(t.memo)}">${highlight(t.memo, keyword)}</div>`
+      : "";
+    // 13位: 順位バッジ（完了タスクは対象外）
+    let rankHtml = "";
+    if (t.progress < 100) {
+      rankCounter++;
+      const sc = score(t);
+      const rankCls = sc >= 9999 ? "urgent" : rankCounter <= 3 ? "top" : "";
+      const tipText = sc >= 9999
+        ? "期限超過リスク：最優先"
+        : `スコア ${sc.toFixed(1)} / ${t.deadline ? "期限あり" : "バックログ"}・優先度${t.priority}`;
+      rankHtml = `<span class="rank-badge ${rankCls}" title="${esc(tipText)}">${rankCounter}</span>`;
+    }
 
     const row = `
       <tr data-id="${t.id}">
-        <td><div class="task-name" onclick="edit(${t.id})" style="cursor:pointer;display:inline-block">${esc(t.name)}</div>${stHint}</td>
+        <td class="rank-cell">${rankHtml}</td>
+        <td><div class="task-name" onclick="edit(${t.id})" ondblclick="startInlineEdit(this,${t.id});event.stopPropagation()" style="cursor:pointer;display:inline-block" title="ダブルクリックで名前を編集">${hlName}</div>${stHint}</td>
         <td><span class="prio-badge ${esc(t.priority)}">${esc(t.priority)}</span></td>
         <td><span class="status-badge ${si.cls}">${si.icon} ${esc(si.text)}</span></td>
         <td><span class="dl-rel ${dl.cls}">${esc(dl.text)}</span></td>
@@ -1703,7 +2486,7 @@ function render() {
             <span class="prog-text">${t.progress}% · ${remain.toFixed(1)}h</span>
           </div>
         </td>
-        <td>${esc(t.memo || "")}</td>
+        <td>${memoHtml}</td>
         <td>
           <div class="row-actions">
             <button class="icon-btn" onclick="toggleWait(${t.id});event.stopPropagation()" title="待機切替 (W)">⏸</button>
@@ -1715,12 +2498,12 @@ function render() {
     if (t.progress >= 100) { $("done-table").innerHTML += row; doneNum++; }
     else $("tbody").innerHTML += row;
 
-    // Kanban card
+    // 7位: カンバンカード（prio-badge化 + 進捗バー追加）
     const card = document.createElement("div");
     card.className = "k-card"; card.draggable = true; card.onclick = () => edit(t.id);
     const titleEl = document.createElement("div"); titleEl.className = "k-card-title";
-    const dotSpan = document.createElement("span"); dotSpan.className = "dot " + t.priority;
-    titleEl.appendChild(dotSpan); titleEl.append(" " + t.name);
+    const badge = document.createElement("span"); badge.className = "prio-badge " + t.priority; badge.textContent = t.priority;
+    titleEl.appendChild(badge); titleEl.append(" " + t.name);
     const metaEl = document.createElement("div"); metaEl.className = "k-card-meta";
     const dlSpan = document.createElement("span"); dlSpan.className = "dl-rel " + dl.cls; dlSpan.textContent = dl.text;
     const hSpan = document.createElement("span"); hSpan.textContent = remain.toFixed(1) + "h";
@@ -1728,10 +2511,16 @@ function render() {
     card.appendChild(titleEl); card.appendChild(metaEl);
     if (sp) {
       const stEl = document.createElement("div");
-      stEl.style.cssText = "font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px";
+      stEl.style.cssText = "font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:6px";
       stEl.textContent = `${sp.done}/${sp.total} サブタスク`;
       card.appendChild(stEl);
     }
+    // 進捗バー
+    const progTrack = document.createElement("div"); progTrack.className = "k-prog-track";
+    const progFill  = document.createElement("div"); progFill.className  = "k-prog-fill " + pc;
+    progFill.style.width = t.progress + "%";
+    progTrack.appendChild(progFill); card.appendChild(progTrack);
+
     card.ondragstart = e => { e.dataTransfer.setData("text/plain", String(t.id)); card.style.opacity = ".4"; };
     card.ondragend = () => card.style.opacity = "1";
     const col = t.status === "待機" ? "k-waiting" : t.status === "進行中" ? "k-doing" : t.status === "完了" ? "k-doneK" : t.progress > 0 ? "k-doing" : "k-todo";
@@ -1748,18 +2537,27 @@ function render() {
   $("archived-toggle-wrap").style.display = archivedNum > 0 ? "inline" : "none";
   $("done-wrap").style.display = showDone ? "block" : "none";
 
-  if (tasks.filter(t => t.progress < 100).length === 0) {
-    $("tbody").innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px">タスクなし — ＋ で追加してください</td></tr>`;
+  // 9位: 空状態メッセージをフィルター有無で分岐
+  const totalActive = tasks.filter(t => t.progress < 100).length;
+  const hasFilter = filterPriority || filterStatus || filterDeadline || keyword;
+  if (totalActive === 0) {
+    $("tbody").innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px">タスクなし — ＋ で追加してください</td></tr>`;
+  } else if (rankCounter === 0 && hasFilter) {
+    $("tbody").innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px">
+      絞り込み結果が0件です
+      <div style="margin-top:10px">
+        <button class="btn" onclick="resetFilters()" style="font-size:11px">フィルターをリセット</button>
+      </div>
+    </td></tr>`;
   }
 
   // フィルター件数表示
   const activeFiltered = tasks.filter(t => t.progress < 100 && taskMatchesFilters(t)).length;
-  const activeTotal    = tasks.filter(t => t.progress < 100).length;
   const countEl = $("filter-count");
-  if (filterPriority || filterStatus || filterDeadline || keyword) {
-    countEl.textContent = `${activeFiltered} / ${activeTotal} 件`;
+  if (hasFilter) {
+    countEl.textContent = `${activeFiltered} / ${totalActive} 件`;
   } else {
-    countEl.textContent = activeTotal > 0 ? `${activeTotal} 件` : "";
+    countEl.textContent = totalActive > 0 ? `${totalActive} 件` : "";
   }
 
   renderToday(); renderCalendar(); renderSim();
@@ -1781,11 +2579,11 @@ function renderToday() {
     const r = t.estimate * (1 - t.progress / 100);
     if (h > 0) {
       const use = Math.min(h, r);
-      todayList.push({ name: t.name, use });
+      todayList.push({ id: t.id, name: t.name, use });
       h -= use;
-      if (r > use) carry.push({ name: t.name, remain: r - use });
+      if (r > use) carry.push({ id: t.id, name: t.name, remain: r - use });
     } else {
-      carry.push({ name: t.name, remain: r });
+      carry.push({ id: t.id, name: t.name, remain: r });
     }
   });
 
@@ -1793,6 +2591,8 @@ function renderToday() {
   if (todayList.length) {
     todayList.forEach(x => {
       const div = document.createElement("div"); div.className = "today-item";
+      div.style.cursor = "pointer"; div.title = "クリックしてタスクを選択";
+      div.onclick = () => scrollToTask(x.id);
       const nm = document.createElement("span"); nm.textContent = x.name;
       const hh = document.createElement("span"); hh.className = "h"; hh.textContent = x.use.toFixed(1) + "h";
       div.appendChild(nm); div.appendChild(hh); itemsEl.appendChild(div);
@@ -1852,9 +2652,250 @@ function renderDowGrid() {
 // ============================================================
 //  Calendar
 // ============================================================
+// ============================================================
+//  4位: Timeline / Gantt View
+// ============================================================
+let tlStartDate = null; // 表示開始日(YYYY-MM-DD)、週の始まり
+function tlGetStart() {
+  if (tlStartDate) return tlStartDate;
+  const today = parseDate(todayJST());
+  const dow = today.getDay();
+  const start = new Date(today); start.setDate(start.getDate() - dow); // 日曜始まり
+  tlStartDate = jstDateStr(start);
+  return tlStartDate;
+}
+function tlMove(days) {
+  const d = parseDate(tlGetStart());
+  d.setDate(d.getDate() + days);
+  tlStartDate = jstDateStr(d);
+  renderTimeline();
+}
+function tlToday() { tlStartDate = null; renderTimeline(); }
+
+function renderTimeline() {
+  const startStr = tlGetStart();
+  const start = parseDate(startStr);
+  const days = [];
+  for (let i = 0; i < 7; i++) { const d = new Date(start); d.setDate(d.getDate()+i); days.push(jstDateStr(d)); }
+  const today = todayJST();
+  const endStr = days[6];
+
+  $("tl-range-label").textContent = `${startStr} 〜 ${endStr}`;
+
+  const wrap = $("tl-wrap"); wrap.innerHTML = "";
+  const grid = document.createElement("div"); grid.className = "tl-grid";
+
+  // ヘッダー行
+  const headerRow = document.createElement("div"); headerRow.className = "tl-header-row";
+  headerRow.appendChild(document.createElement("div"));
+  const DOWS = ["日","月","火","水","木","金","土"];
+  days.forEach(d => {
+    const cell = document.createElement("div");
+    cell.className = "tl-header-cell" + (d === today ? " today" : "");
+    const dt = parseDate(d);
+    cell.textContent = `${dt.getMonth()+1}/${dt.getDate()}(${DOWS[dt.getDay()]})`;
+    headerRow.appendChild(cell);
+  });
+  grid.appendChild(headerRow);
+
+  // 表示対象：未完了タスクのうち、期間内に期限があるか、期限なしでも進行中のもの
+  const visibleTasks = tasks.filter(t => t.progress < 100 && t.deadline)
+    .filter(t => t.deadline >= startStr ? true : t.deadline <= endStr) // 過去期限も表示(遅延把握のため範囲内なら)
+    .filter(t => true)
+    .sort((a,b) => (a.deadline||"") < (b.deadline||"") ? -1 : 1);
+
+  // 実際は「期限が表示範囲以前〜範囲内」のタスクをバー表示。開始日は見積りから逆算
+  const rowsMap = {};
+  visibleTasks.forEach(t => {
+    const id2idx = {};
+    days.forEach((d,i)=> id2idx[d]=i);
+    // バーの終了日 = 期限 (範囲内にクランプ)
+    let endIdx = id2idx[t.deadline];
+    if (endIdx === undefined) {
+      if (t.deadline < startStr) endIdx = -1; // 範囲より前 = 遅延として左端に食い込ませる
+      else return; // 範囲より後ろは今回非表示
+    }
+    // 開始日 = 残工数から逆算（1日6h想定で日数換算、最低1日）
+    const remain = t.estimate * (1 - t.progress/100);
+    const spanDays = Math.max(1, Math.ceil(remain / 6));
+    let startIdx = endIdx - spanDays + 1;
+    const clampedStart = Math.max(0, startIdx);
+    const clampedEnd = Math.min(6, Math.max(endIdx, 0));
+    if (clampedEnd < 0) return;
+    rowsMap[t.id] = { task: t, startIdx: clampedStart, endIdx: clampedEnd, overdue: endIdx < 0 };
+  });
+
+  const rows = Object.values(rowsMap);
+  if (rows.length === 0) {
+    const empty = document.createElement("div");
+    empty.style.cssText = "padding:40px;text-align:center;color:var(--muted);font-size:12px";
+    empty.textContent = "この期間に表示できる期限付きタスクがありません";
+    grid.appendChild(empty);
+  }
+
+  rows.forEach(({task: t, startIdx, endIdx, overdue}) => {
+    const row = document.createElement("div"); row.className = "tl-row";
+    const nameCell = document.createElement("div"); nameCell.className = "tl-row-name";
+    nameCell.textContent = (overdue ? "⚠ " : "") + t.name;
+    nameCell.title = "クリックして編集";
+    nameCell.onclick = () => edit(t.id);
+    row.appendChild(nameCell);
+
+    const cellsWrap = document.createElement("div"); cellsWrap.className = "tl-cells";
+    for (let i=0;i<7;i++) {
+      const bg = document.createElement("div"); bg.className = "tl-cell-bg"; cellsWrap.appendChild(bg);
+    }
+    // 今日の縦線
+    const todayIdx = days.indexOf(today);
+    if (todayIdx >= 0) {
+      const line = document.createElement("div"); line.className = "tl-today-line";
+      line.style.left = `calc(${todayIdx} * (100% / 7))`;
+      cellsWrap.appendChild(line);
+    }
+    const bar = document.createElement("div");
+    const colorCls = t.priority === "高" ? "high" : t.priority === "中" ? "mid" : "low";
+    bar.className = "tl-bar " + colorCls;
+    const widthPct = ((endIdx - startIdx + 1) / 7) * 100;
+    const leftPct = (startIdx / 7) * 100;
+    bar.style.left = leftPct + "%"; bar.style.width = widthPct + "%";
+    bar.title = `${t.name}\n期限: ${t.deadline}\n進捗 ${t.progress}%`;
+    bar.onclick = () => edit(t.id);
+    const fill = document.createElement("div"); fill.className = "tl-bar-fill";
+    fill.style.width = t.progress + "%";
+    bar.appendChild(fill);
+    const label = document.createElement("span"); label.style.position="relative"; label.style.zIndex="1";
+    label.textContent = t.name;
+    bar.appendChild(label);
+    cellsWrap.appendChild(bar);
+
+    // 依存関係の点線（先行タスクの行があれば結ぶのは複雑なので、依存ありマークのみ表示）
+    if (t.dependsOn) {
+      const dep = tasks.find(x => x.id === t.dependsOn);
+      if (dep) bar.title += `\n先行: ${dep.name}（${dep.progress}%）`;
+    }
+
+    row.appendChild(cellsWrap);
+    grid.appendChild(row);
+  });
+
+  wrap.appendChild(grid);
+}
+
 let calYear, calMonth;
 (function () { const jst = jstNow(); calYear = jst.getFullYear(); calMonth = jst.getMonth(); })();
 function calMove(d) { calMonth += d; if (calMonth > 11) { calMonth = 0; calYear++; } if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
+// ============================================================
+//  3位: Weekly Retro View
+// ============================================================
+let retroWeekOffset = 0; // 0=今週、-1=先週...
+function retroMove(delta) { retroWeekOffset += delta; renderRetro(); }
+function retroGetRange() {
+  const today = parseDate(todayJST());
+  const dow = today.getDay();
+  const start = new Date(today); start.setDate(start.getDate() - dow + retroWeekOffset * 7);
+  const end = new Date(start); end.setDate(end.getDate() + 6);
+  return { start: jstDateStr(start), end: jstDateStr(end) };
+}
+function renderRetro() {
+  const { start, end } = retroGetRange();
+  $("retro-range-label").textContent = `${start} 〜 ${end}`;
+
+  const doneInRange = tasks.filter(t => t.progress >= 100 && t.completedAt && t.completedAt >= start && t.completedAt <= end);
+  const totalEst = doneInRange.reduce((s,t) => s + (t.estimate||0), 0);
+  // 実績工数の概念がないので見積もりをそのまま実績とみなしつつ、差分は「サブタスク数」等のproxyではなく
+  // estimateAtCompletionがあればそれを使う設計にし、無ければestimateをそのまま使う簡易版とする
+  const avgProgress = tasks.filter(t => t.progress < 100).length
+    ? (tasks.filter(t=>t.progress<100).reduce((s,t)=>s+t.progress,0) / tasks.filter(t=>t.progress<100).length)
+    : 0;
+  const newTasksInRange = tasks.filter(t => {
+    const created = new Date(t.id).getTime ? jstDateStr(new Date(t.id)) : null;
+    return created && created >= start && created <= end;
+  });
+  const overdueStill = tasks.filter(t => t.progress < 100 && t.deadline && t.deadline < todayJST());
+
+  const body = $("retro-body"); body.innerHTML = "";
+
+  // サマリーカード
+  const statsRow = document.createElement("div"); statsRow.className = "retro-stats-row";
+  const stats = [
+    { label: "完了タスク", val: doneInRange.length + "件" },
+    { label: "完了工数合計", val: totalEst.toFixed(1) + "h" },
+    { label: "新規追加", val: newTasksInRange.length + "件" },
+    { label: "現在の遅延", val: overdueStill.length + "件", cls: overdueStill.length > 0 ? "bad" : "good" },
+  ];
+  stats.forEach(s => {
+    const card = document.createElement("div"); card.className = "retro-stat-card";
+    card.innerHTML = `<div class="retro-stat-label">${esc(s.label)}</div><div class="retro-stat-val ${s.cls||""}">${esc(s.val)}</div>`;
+    statsRow.appendChild(card);
+  });
+  body.appendChild(statsRow);
+
+  // 日別完了数の棒グラフ
+  const chartSec = document.createElement("div"); chartSec.className = "retro-section";
+  chartSec.innerHTML = `<h4>日別完了数</h4>`;
+  const chart = document.createElement("div"); chart.className = "retro-bar-chart";
+  const DOWS = ["日","月","火","水","木","金","土"];
+  const startDate = parseDate(start);
+  let maxCount = 1;
+  const dayCounts = [];
+  for (let i=0;i<7;i++) {
+    const d = new Date(startDate); d.setDate(d.getDate()+i);
+    const dStr = jstDateStr(d);
+    const cnt = doneInRange.filter(t => t.completedAt === dStr).length;
+    dayCounts.push({ dStr, cnt, dow: d.getDay() });
+    if (cnt > maxCount) maxCount = cnt;
+  }
+  dayCounts.forEach(({dStr, cnt, dow}) => {
+    const col = document.createElement("div"); col.className = "retro-bar-col";
+    const track = document.createElement("div"); track.className = "retro-bar-track";
+    const fill = document.createElement("div"); fill.className = "retro-bar-fill";
+    fill.style.height = (cnt / maxCount * 100) + "%";
+    track.appendChild(fill);
+    const label = document.createElement("div"); label.className = "retro-bar-label";
+    label.textContent = DOWS[dow] + (cnt>0 ? ` (${cnt})` : "");
+    col.appendChild(track); col.appendChild(label);
+    chart.appendChild(col);
+  });
+  chartSec.appendChild(chart);
+  body.appendChild(chartSec);
+
+  // 完了タスク一覧
+  const listSec = document.createElement("div"); listSec.className = "retro-section";
+  listSec.innerHTML = `<h4>今週完了したタスク（${doneInRange.length}件）</h4>`;
+  if (doneInRange.length === 0) {
+    const empty = document.createElement("div");
+    empty.style.cssText = "color:var(--muted);font-size:12px;text-align:center;padding:12px";
+    empty.textContent = "この期間に完了したタスクはありません";
+    listSec.appendChild(empty);
+  } else {
+    doneInRange.forEach(t => {
+      const row = document.createElement("div"); row.className = "retro-task-row";
+      row.innerHTML = `
+        <span>${esc(t.name)}</span>
+        <span style="display:flex;gap:10px;align-items:center">
+          <span style="color:var(--muted2);font-family:var(--mono)">${t.completedAt}</span>
+          <span class="retro-est-diff exact">${t.estimate}h</span>
+        </span>`;
+      listSec.appendChild(row);
+    });
+  }
+  body.appendChild(listSec);
+
+  // 期限超過タスク（要注意）
+  if (overdueStill.length > 0) {
+    const overdueSec = document.createElement("div"); overdueSec.className = "retro-section";
+    overdueSec.innerHTML = `<h4 style="color:var(--red)">⚠ 現在も遅延中のタスク（${overdueStill.length}件）</h4>`;
+    overdueStill.forEach(t => {
+      const row = document.createElement("div"); row.className = "retro-task-row";
+      row.style.cursor = "pointer";
+      row.onclick = () => { showList(); setTimeout(()=>scrollToTask(t.id), 50); };
+      row.innerHTML = `<span>${esc(t.name)}</span><span class="retro-est-diff over">期限 ${t.deadline}</span>`;
+      overdueSec.appendChild(row);
+    });
+    body.appendChild(overdueSec);
+  }
+}
+
 function renderCalendar() {
   const today = todayJST();
   const y = calYear, m = calMonth;
@@ -1865,6 +2906,14 @@ function renderCalendar() {
   DOWS.forEach(d => {
     const el = document.createElement("div"); el.className = "cal-dow"; el.textContent = d; grid.appendChild(el);
   });
+
+  // 12位: 期限タスクをdateStr→task[]のマップで構築
+  const deadlineMap = {};
+  tasks.filter(t => t.progress < 100 && t.deadline).forEach(t => {
+    if (!deadlineMap[t.deadline]) deadlineMap[t.deadline] = [];
+    deadlineMap[t.deadline].push(t);
+  });
+
   const firstDay = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   for (let i = 0; i < firstDay; i++) {
@@ -1890,7 +2939,21 @@ function renderCalendar() {
     if (ov || h !== defaultH) {
       const dot = document.createElement("div"); dot.className = "cal-dot"; el.appendChild(dot);
     }
-    el.title = `${dateStr} 稼働${h}h${ov ? ` (${ov.memo||""})` : ""}`;
+    // 12位: 期限マーカー
+    const dlTasks = deadlineMap[dateStr];
+    if (dlTasks && dlTasks.length > 0) {
+      const dotsWrap = document.createElement("div"); dotsWrap.className = "cal-deadline-dots";
+      const names = dlTasks.map(t => t.name).join(", ");
+      el.title = `${dateStr} 稼働${h}h${ov ? ` (${ov.memo||""})` : ""}\n期限: ${names}`;
+      dlTasks.slice(0, 3).forEach(t => {
+        const d = document.createElement("div");
+        d.className = "cal-dl-dot " + (t.priority === "高" ? "high" : t.priority === "中" ? "mid" : "normal");
+        dotsWrap.appendChild(d);
+      });
+      el.appendChild(dotsWrap);
+    } else {
+      el.title = `${dateStr} 稼働${h}h${ov ? ` (${ov.memo||""})` : ""}`;
+    }
     el.onclick = () => openDayModal(dateStr);
     grid.appendChild(el);
   }
@@ -1937,18 +3000,65 @@ function edit(id) {
   $("m_progress").value = t.progress; $("m_memo").value = t.memo || "";
   $("subtask-input").value = "";
   renderSubtaskList(t);
+  // 先行タスクの選択肢を構築（自分自身と完了タスクは除外、循環依存を防ぐため自分に依存するタスクも除外）
+  const sel = $("m_dependsOn");
+  sel.innerHTML = '<option value="">なし</option>';
+  tasks.filter(x => x.id !== t.id && x.progress < 100).forEach(x => {
+    const opt = document.createElement("option");
+    opt.value = x.id; opt.textContent = x.name;
+    if (t.dependsOn === x.id) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  $("m_repeat").value = t.repeat || "";
   $("modal").classList.add("open");
 }
 function saveModal() {
   const t = tasks.find(x => x.id == currentId); if (!t) return;
+  pushHistory();
   t.name = $("m_name").value; t.priority = $("m_priority").value;
   t.deadline = $("m_deadline").value; t.estimate = +$("m_estimate").value;
   t.progress = +$("m_progress").value; t.memo = $("m_memo").value;
-  if (t.progress >= 100) t.status = "完了";
-  closeModal(); save(true); showToast("保存しました", "success");
+  const depVal = $("m_dependsOn").value;
+  t.dependsOn = depVal ? Number(depVal) : null;
+  t.repeat = $("m_repeat").value || null;
+  if (t.progress >= 100) {
+    t.status = "完了";
+    if (!t.completedAt) t.completedAt = todayJST();
+    maybeSpawnRecurring(t);
+  }
+  closeModal(); save(true); showToast("保存しました", "success"); showUndoHint();
 }
 function closeModal() { $("modal").classList.remove("open"); }
 $("modal").addEventListener("click", e => { if (e.target === $("modal")) closeModal(); });
+
+// ============================================================
+//  1位(新): 依存関係 / 繰り返しタスク
+// ============================================================
+// タスクが依存先未完了ならブロック中とみなす
+function isBlocked(t) {
+  if (!t.dependsOn) return false;
+  const dep = tasks.find(x => x.id === t.dependsOn);
+  return dep ? dep.progress < 100 : false;
+}
+// 完了時、繰り返し設定があれば次回分を自動生成
+function maybeSpawnRecurring(t) {
+  if (!t.repeat || !t.deadline) return;
+  const base = parseDate(t.deadline);
+  let next = new Date(base);
+  if (t.repeat === "daily")   next.setDate(next.getDate() + 1);
+  if (t.repeat === "weekly")  next.setDate(next.getDate() + 7);
+  if (t.repeat === "monthly") next.setMonth(next.getMonth() + 1);
+  const nextStr = jstDateStr(next);
+  // 既に同名・同日の繰り返しタスクがあれば重複生成しない
+  const dup = tasks.some(x => x.name === t.name && x.deadline === nextStr && x.repeat === t.repeat);
+  if (dup) return;
+  tasks.push({
+    id: Date.now() + Math.floor(Math.random()*1000), name: t.name,
+    priority: t.priority, deadline: nextStr, estimate: t.estimate,
+    progress: 0, memo: t.memo, status: "未着手", subtasks: [],
+    repeat: t.repeat, dependsOn: null
+  });
+}
 
 // ============================================================
 //  Actions
@@ -1957,7 +3067,9 @@ function quickProgress(id) {
   const t = tasks.find(x => x.id == id); if (!t) return;
   const next = Math.min(100, t.progress + 10);
   if (next >= 100) { if (!confirm(`「${t.name}」を完了としてマークしますか？`)) return; }
-  t.progress = next; save(true);
+  pushHistory(); t.progress = next;
+  if (next >= 100) { t.status = "完了"; t.completedAt = t.completedAt || todayJST(); maybeSpawnRecurring(t); }
+  save(true); showUndoHint();
   if (next >= 100) showToast(`「${t.name}」完了！`, "success");
 }
 function wheelProgress(e, id) {
@@ -1967,20 +3079,22 @@ function wheelProgress(e, id) {
   const next = Math.max(0, Math.min(100, t.progress + delta));
   if (next === t.progress) return;
   if (next >= 100) { if (!confirm(`「${t.name}」を完了としてマークしますか？`)) return; }
-  t.progress = next; save(true);
+  pushHistory(); t.progress = next;
+  if (next >= 100) { t.status = "完了"; t.completedAt = t.completedAt || todayJST(); maybeSpawnRecurring(t); }
+  save(true); showUndoHint();
   if (next >= 100) showToast(`「${t.name}」完了！`, "success");
 }
 function toggleWait(id) {
   const t = tasks.find(x => x.id == id);
-  t.status = t.status === "待機" ? "進行中" : "待機";
-  save(true);
+  pushHistory(); t.status = t.status === "待機" ? "進行中" : "待機";
+  save(true); showUndoHint();
   showToast(t.status === "待機" ? "待機に設定" : "進行中に変更");
 }
 function del(id) {
   const t = tasks.find(x => x.id == id);
   if (!confirm(`「${t ? t.name : "このタスク"}」を削除しますか？`)) return;
-  tasks = tasks.filter(t => t.id != id); save(true);
-  showToast("削除しました", "danger");
+  pushHistory(); tasks = tasks.filter(t => t.id != id); save(true);
+  showToast("削除しました", "danger"); showUndoHint();
   if (selectedRowId === id) setSelectedRow(null);
 }
 function toggleDone() {
@@ -2001,14 +3115,18 @@ function drop(e, s) {
 // ============================================================
 //  View switch
 // ============================================================
-function showList() {
-  $("list-view").style.display = "block"; $("board-view").style.display = "none";
-  $("btnList").classList.add("active"); $("btnBoard").classList.remove("active");
+const ALL_VIEWS = ["list-view","board-view","timeline-view","retro-view"];
+const ALL_BTNS  = ["btnList","btnBoard","btnTimeline","btnRetro"];
+function _activateView(viewId, btnId, displayType) {
+  ALL_VIEWS.forEach(v => $(v).style.display = "none");
+  ALL_BTNS.forEach(b => $(b).classList.remove("active"));
+  $(viewId).style.display = displayType;
+  $(btnId).classList.add("active");
 }
-function showBoard() {
-  $("list-view").style.display = "none"; $("board-view").style.display = "grid";
-  $("btnList").classList.remove("active"); $("btnBoard").classList.add("active");
-}
+function showList()     { _activateView("list-view","btnList","block"); render(); }
+function showBoard()    { _activateView("board-view","btnBoard","grid"); render(); }
+function showTimeline() { _activateView("timeline-view","btnTimeline","block"); renderTimeline(); }
+function showRetro()    { _activateView("retro-view","btnRetro","block"); renderRetro(); }
 
 // ============================================================
 //  Export / Import / Report
@@ -2032,7 +3150,7 @@ function importTasks(e) {
   reader.readAsText(f);
 }
 
-function downloadReport() {
+function buildReport() {
   const today = todayJST();
   const active = tasks.filter(t => t.progress < 100).sort((a,b) => score(b)-score(a));
   const recentDone = tasks.filter(t => {
@@ -2048,74 +3166,191 @@ function downloadReport() {
   const canvas = document.createElement("canvas");
   const DPR = 2; canvas.width = W * DPR; canvas.height = H * DPR;
   const ctx = canvas.getContext("2d"); ctx.scale(DPR, DPR);
-  ctx.fillStyle = "#0F1117"; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = "#161820"; ctx.fillRect(0, 0, W, HEADER_H - 16);
-  ctx.fillStyle = "#E2E4F0"; ctx.font = "600 20px 'Inter', sans-serif"; ctx.fillText("週次タスクレポート", 32, 44);
-  ctx.fillStyle = "#6B7280"; ctx.font = "13px 'Inter', sans-serif";
+
+  // ── ライトテーマ カラーパレット ──────────────────────────
+  const C = {
+    bg:        "#FFFFFF",
+    headerBg:  "#F8F9FC",
+    border:    "#E2E8F0",
+    text:      "#1E293B",
+    textSub:   "#64748B",
+    textMuted: "#94A3B8",
+    cardBg:    "#F8FAFF",
+    cardBorder:"#E2E8F0",
+    accent:    "#4F46E5",
+    accentBg:  "#EEF2FF",
+    red:       "#DC2626",
+    redBg:     "#FEF2F2",
+    redBorder: "#FECACA",
+    orange:    "#EA580C",
+    orangeBg:  "#FFF7ED",
+    yellow:    "#D97706",
+    yellowBg:  "#FFFBEB",
+    green:     "#16A34A",
+    greenBg:   "#F0FDF4",
+    greenBorder:"#BBF7D0",
+    progTrack: "#E2E8F0",
+  };
+
+  // 全体背景
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+
+  // ── ヘッダー ────────────────────────────────────────────
+  ctx.fillStyle = C.headerBg; ctx.fillRect(0, 0, W, HEADER_H - 16);
+  // ヘッダー下線
+  ctx.fillStyle = C.border; ctx.fillRect(0, HEADER_H - 17, W, 1);
+  // アクセントライン（左端）
+  ctx.fillStyle = C.accent; ctx.fillRect(0, 0, 4, HEADER_H - 16);
+
+  ctx.fillStyle = C.text;
+  ctx.font = "600 20px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+  ctx.fillText("週次タスクレポート", 24, 42);
+
   const jst = jstNow();
-  ctx.fillText(jst.toLocaleDateString("ja-JP",{year:"numeric",month:"long",day:"numeric",weekday:"short"}) + " JST", 32, 68);
-  const stats = [
-    { label:"進行中", val: active.length + "件" },
-    { label:"完了（過去7日間）", val: recentDone.length + "件" },
-    { label:"残工数合計", val: totalRemain.toFixed(1) + "h" },
-    { label:"遅延・危険", val: dangerCount + "件", danger: dangerCount > 0 },
-  ];
+  ctx.fillStyle = C.textSub;
+  ctx.font = "13px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+  ctx.fillText(jst.toLocaleDateString("ja-JP",{year:"numeric",month:"long",day:"numeric",weekday:"short"}), 24, 66);
+
+  // 右上：危険件数バッジ
+  if (dangerCount > 0) {
+    const badgeTxt = `⚠ 要注意 ${dangerCount}件`;
+    ctx.font = "600 12px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+    const bw = ctx.measureText(badgeTxt).width + 20;
+    roundRect(ctx, W - 32 - bw, 28, bw, 24, 6, C.redBg, C.redBorder);
+    ctx.fillStyle = C.red; ctx.fillText(badgeTxt, W - 32 - bw + 10, 44);
+  }
+
+  // ── サマリーカード 4枚 ──────────────────────────────────
   const statY = HEADER_H;
-  const statW = (W - 64 - 24) / 4;
+  const statW = (W - 48 - 18) / 4;
+  const stats = [
+    { label:"進行中タスク", val: active.length + "件",            color: C.accent,  bgColor: C.accentBg,  border: "#C7D2FE" },
+    { label:"完了（7日間）",  val: recentDone.length + "件",       color: C.green,   bgColor: C.greenBg,   border: C.greenBorder },
+    { label:"残工数合計",     val: totalRemain.toFixed(1) + "h",   color: C.text,    bgColor: C.cardBg,    border: C.cardBorder },
+    { label:"遅延・要注意",   val: dangerCount + "件",             color: dangerCount > 0 ? C.red : C.textMuted, bgColor: dangerCount > 0 ? C.redBg : C.cardBg, border: dangerCount > 0 ? C.redBorder : C.cardBorder },
+  ];
   stats.forEach((s, i) => {
-    const x = 32 + i * (statW + 8);
-    roundRect(ctx, x, statY, statW, 68, 8, "#1A1D2E", null);
-    ctx.fillStyle = "#4B5268"; ctx.font = "11px 'Inter', sans-serif"; ctx.fillText(s.label, x + 12, statY + 22);
-    ctx.fillStyle = s.danger ? "#F87171" : "#A5B4FC"; ctx.font = "600 22px 'Inter', sans-serif"; ctx.fillText(s.val, x + 12, statY + 52);
+    const x = 24 + i * (statW + 6);
+    roundRect(ctx, x, statY + 8, statW, 64, 8, s.bgColor, s.border);
+    ctx.fillStyle = C.textSub;
+    ctx.font = "11px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+    ctx.fillText(s.label, x + 12, statY + 28);
+    ctx.fillStyle = s.color;
+    ctx.font = "700 22px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+    ctx.fillText(s.val, x + 12, statY + 56);
   });
+
+  // ── 進行中タスクセクション ───────────────────────────────
   const secY = statY + STAT_H;
-  ctx.fillStyle = "#4B5268"; ctx.font = "600 11px 'Inter', sans-serif"; ctx.fillText("進行中タスク", 32, secY + 20);
+  ctx.fillStyle = C.textSub;
+  ctx.font = "600 11px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+  ctx.fillText("▸  進行中タスク", 24, secY + 20);
+
   active.forEach((t, i) => {
     const y = secY + SEC_H + i * CARD_H;
     const si = statusInfo(t);
     const remain = t.estimate * (1 - t.progress / 100);
-    roundRect(ctx, 32, y, W - 64, CARD_H - 8, 10, "#1A1D2E", "#2A2D3A");
-    const barColor = si.cls === "s-danger" ? "#F87171" : si.cls === "s-warn" ? "#FCD34D" : si.cls === "s-caution" ? "#FCD34D" : "#818CF8";
-    roundRect(ctx, 32, y, 4, CARD_H - 8, 2, barColor, null);
-    const pColor = t.priority === "高" ? { bg:"#2D1515", text:"#F87171" } : t.priority === "中" ? { bg:"#141D35", text:"#818CF8" } : { bg:"#1E2133", text:"#A5B4FC" };
-    const badgeW = 28;
-    roundRect(ctx, 44, y + 14, badgeW, 18, 9, pColor.bg, null);
-    ctx.fillStyle = pColor.text; ctx.font = "600 10px 'Inter', sans-serif"; ctx.textAlign = "center";
-    ctx.fillText(t.priority, 44 + badgeW/2, y + 27); ctx.textAlign = "left";
-    ctx.fillStyle = "#E2E4F0"; ctx.font = "500 13px 'Inter', sans-serif";
-    const maxNameW = W - 64 - 130 - 50; ctx.fillText(truncate(ctx, t.name, maxNameW), 80, y + 26);
+
+    // カード背景
+    roundRect(ctx, 24, y, W - 48, CARD_H - 8, 8, C.cardBg, C.cardBorder);
+
+    // ステータス左ライン
+    const lineColor =
+      si.cls === "s-danger"  ? C.red :
+      si.cls === "s-warn"    ? C.orange :
+      si.cls === "s-caution" ? C.yellow : C.accent;
+    roundRect(ctx, 24, y, 4, CARD_H - 8, 2, lineColor, null);
+
+    // 優先度バッジ
+    const pText = t.priority;
+    const pColor =
+      t.priority === "高" ? { bg: C.redBg,    text: C.red,    border: C.redBorder } :
+      t.priority === "中" ? { bg: C.accentBg, text: C.accent, border: "#C7D2FE"   } :
+                            { bg: C.cardBg,   text: C.textSub,border: C.cardBorder };
+    ctx.font = "600 10px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+    const badgeW = ctx.measureText(pText).width + 14;
+    roundRect(ctx, 36, y + 13, badgeW, 17, 4, pColor.bg, pColor.border);
+    ctx.fillStyle = pColor.text;
+    ctx.font = "600 10px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+    ctx.fillText(pText, 36 + 7, y + 25);
+
+    // タスク名
+    const nameX = 36 + badgeW + 8;
+    const maxNameW = W - nameX - 48 - 140;
+    ctx.fillStyle = C.text;
+    ctx.font = "500 13px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+    ctx.fillText(truncate(ctx, t.name, maxNameW), nameX, y + 26);
+
+    // 期限
     const dl = relDeadline(t.deadline);
-    ctx.fillStyle = dl.cls === "dl-overdue" ? "#F87171" : dl.cls === "dl-today" ? "#FCD34D" : dl.cls === "dl-soon" ? "#FCD34D" : "#4B5268";
-    ctx.font = "11px 'Inter', sans-serif";
-    const dlText = t.deadline ? `${dl.text}  (${t.deadline})` : dl.text;
-    ctx.fillText(dlText, 80, y + 44);
-    const barX = W - 64 - 120, barY = y + 20, barLen = 110, barH2 = 5;
-    roundRect(ctx, barX, barY, barLen, barH2, 3, "#2A2D3A", null);
-    const fillColor = si.cls === "s-danger" ? "#F87171" : si.cls === "s-warn" ? "#FCD34D" : "#4F46E5";
-    roundRect(ctx, barX, barY, Math.max(4, barLen * t.progress / 100), barH2, 3, fillColor, null);
-    ctx.fillStyle = "#4B5268"; ctx.font = "11px 'Inter', sans-serif";
-    ctx.fillText(`${t.progress}%  ${remain.toFixed(1)}h残`, barX, barY + 20);
+    const dlColor =
+      dl.cls === "dl-overdue" ? C.red :
+      dl.cls === "dl-today"   ? C.orange :
+      dl.cls === "dl-soon"    ? C.yellow : C.textMuted;
+    ctx.fillStyle = dlColor;
+    ctx.font = "11px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+    const dlText = t.deadline ? `${dl.text}（${t.deadline}）` : dl.text;
+    ctx.fillText(dlText, nameX, y + 44);
+
+    // 進捗バー
+    const barX = W - 48 - 130, barY2 = y + 18, barLen = 120, barH2 = 6;
+    roundRect(ctx, barX, barY2, barLen, barH2, 3, C.progTrack, null);
+    const fillColor =
+      si.cls === "s-danger"  ? C.red :
+      si.cls === "s-warn"    ? C.orange :
+      si.cls === "s-caution" ? C.yellow : C.accent;
+    if (t.progress > 0) roundRect(ctx, barX, barY2, Math.max(6, barLen * t.progress / 100), barH2, 3, fillColor, null);
+
+    ctx.fillStyle = C.textSub;
+    ctx.font = "600 12px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(`${t.progress}%`, barX + barLen, barY2 - 4);
+    ctx.textAlign = "left";
+    ctx.fillStyle = C.textMuted;
+    ctx.font = "10px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+    ctx.fillText(`残 ${remain.toFixed(1)}h`, barX, barY2 + 20);
   });
+
+  // ── 完了タスクセクション ─────────────────────────────────
   if (recentDone.length > 0) {
     const doneSecY = secY + SEC_H + active.length * CARD_H + 16;
-    ctx.strokeStyle = "#2A2D3A"; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(32, doneSecY); ctx.lineTo(W-32, doneSecY); ctx.stroke();
-    ctx.fillStyle = "#4B5268"; ctx.font = "600 11px 'Inter', sans-serif"; ctx.fillText("完了（過去7日間）", 32, doneSecY + 20);
+    ctx.strokeStyle = C.border; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(24, doneSecY); ctx.lineTo(W - 24, doneSecY); ctx.stroke();
+    ctx.fillStyle = C.textSub;
+    ctx.font = "600 11px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+    ctx.fillText("▸  完了（過去7日間）", 24, doneSecY + 20);
     recentDone.forEach((t, i) => {
       const y = doneSecY + SEC_H + i * 44;
-      roundRect(ctx, 32, y, W - 64, 36, 8, "#1A1D2E", null);
-      ctx.fillStyle = "#818CF8"; ctx.font = "12px 'Inter', sans-serif"; ctx.fillText("✓", 46, y + 23);
-      ctx.fillStyle = "#6B7280"; ctx.font = "12px 'Inter', sans-serif"; ctx.fillText(truncate(ctx, t.name, W - 200), 64, y + 23);
-      ctx.fillStyle = "#4B5268"; ctx.font = "11px 'Inter', sans-serif"; ctx.textAlign = "right";
-      ctx.fillText(t.completedAt || "", W - 40, y + 23); ctx.textAlign = "left";
+      roundRect(ctx, 24, y, W - 48, 36, 6, C.greenBg, C.greenBorder);
+      ctx.fillStyle = C.green;
+      ctx.font = "600 12px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+      ctx.fillText("✓", 38, y + 23);
+      ctx.fillStyle = C.textSub;
+      ctx.font = "12px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+      ctx.fillText(truncate(ctx, t.name, W - 200), 56, y + 23);
+      ctx.fillStyle = C.textMuted;
+      ctx.font = "11px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+      ctx.textAlign = "right";
+      ctx.fillText(t.completedAt || "", W - 32, y + 23);
+      ctx.textAlign = "left";
     });
   }
-  ctx.fillStyle = "#2A2D3A"; ctx.fillRect(32, H - 24, W - 64, 1);
-  ctx.fillStyle = "#4B5268"; ctx.font = "11px 'Inter', sans-serif"; ctx.fillText("Generated by TaskFlow", 32, H - 10);
+
+  // ── フッター ────────────────────────────────────────────
+  ctx.fillStyle = C.border; ctx.fillRect(24, H - 28, W - 48, 1);
+  ctx.fillStyle = C.textMuted;
+  ctx.font = "10px 'Hiragino Sans', 'Yu Gothic', sans-serif";
+  ctx.fillText("Generated by TaskFlow", 24, H - 12);
+  ctx.textAlign = "right";
+  ctx.fillText("社外秘", W - 24, H - 12);
+  ctx.textAlign = "left";
+  return { dataURL: canvas.toDataURL("image/png"), filename: "weekly-report-" + today + ".png" };
+}
+function downloadReport() {
+  const { dataURL, filename } = buildReport();
   const a = document.createElement("a");
-  a.href = canvas.toDataURL("image/png");
-  a.download = "weekly-report-" + today + ".png";
-  a.click(); showToast("週報画像をダウンロードしました", "info");
+  a.href = dataURL; a.download = filename; a.click();
+  showToast("週報画像をダウンロードしました", "info");
 }
 
 function roundRect(ctx, x, y, w, h, r, fill, stroke) {
@@ -2368,6 +3603,7 @@ function applyDeadline(id, newDate) {
 // ============================================================
 renderDowGrid();
 showList();
+restoreFilterUI();
 render();
 </script>
 </body>
